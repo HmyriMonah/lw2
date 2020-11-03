@@ -1,11 +1,14 @@
 var authUserData = null;
 var userDatabase = []; // массив с зарегистрированными пользователями
-let key = null;
+var emailForVerification = null;
 //функция регистрации
 function register(email, password) {
+  let key = null;
   if (check(email, password)) {
-    key = Search(email);
-    if (key != -1) {
+    key = userDatabase.findIndex(
+      (user) => user.email === email && user.password === password
+    );
+    if (key === -1) {
       userDatabase.push({ email: email, password: password });
       return true;
     }
@@ -16,26 +19,26 @@ function register(email, password) {
 function signIn(email, password) {
   if (check(email, password)) {
     let number = null;
-    number = Search(email);
-    if (number != -1) {
-      if (userDatabase[number].password == password) {
-        authUserData = userDatabase[number];
-        return true;
-      }
+    emailForVerification = email;
+    number = userDatabase.findIndex(
+      (user) => user.email === email && user.password === password
+    );
+    if (number != -1 && userDatabase[number].password === password) {
+      authUserData = userDatabase[number];
+      return true;
     }
   }
   return false;
 }
 //проверка почты и пароля
 function check(email, password) {
-  if (email.match(/^[\w-.]+@[\w-]+.[a-z]{2,4}$/i) != null) {
-    if (
-      password.length == 6 &&
-      password[0] == password[0].toUpperCase() &&
-      password.match(/\d+/) != null
-    ) {
-      return true;
-    }
+  if (
+    email.match(/^[\w-.]+@[\w-]+.[a-z]{2,4}$/i) !== null &&
+    password.length === 6 &&
+    password[0] === password[0].toUpperCase() &&
+    password.match(/\d+/) !== null
+  ) {
+    return true;
   }
   return false;
 }
@@ -45,179 +48,133 @@ function signOut() {
 }
 // функция восстановления пароля
 function resetPassword(email, oldPassword, newPassword) {
-  number = Search(email);
-  if (number == -1) {
+  emailForVerification = email;
+  number = userDatabase.findIndex(
+    (user) => user.email === email && user.password === oldPassword
+  );
+  if (number === -1) {
     return false;
   } else {
-    if (userDatabase[number].password == oldPassword) {
-      userDatabase[number].password = newPassword;
-      return true;
-    }
+    userDatabase[number].password = newPassword;
+    return true;
   }
   return false;
 }
 //проверка авторизованости пользователя
 function isAuth() {
-  if (authUserData == null) {
+  if (authUserData === null) {
     return false;
   } else {
     return true;
-  }
-}
-//функция поиска пользователя в массиве
-function Search(email) {
-  for (let i = 0; i < userDatabase.length; i++) {
-    if (userDatabase[i].email == email) {
-      number = i;
-      return number;
-    }
-    return -1;
   }
 }
 
 //Валидатор
 
 function validator(value) {
-  let result = true; //поле для хранения вазвращаевомого булевого значения
-  return (vall = {
-    valueToCheck: value,
+  let test = true; //поле для хранения вазвращаевомого булевого значения
+  return (validation = {
+    test_value: value,
     isString: function () {
-      if (result) {
-        if (
-          typeof this.valueToCheck === "string" ||
-          this.valueToCheck instanceof String
-        ) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (
+        (test && typeof this.test_value === "string") ||
+        this.test_value instanceof String
+      ) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     isNumber() {
-      if (result) {
-        if (typeof this.valueToCheck == "number") {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
+      if (test && typeof this.test_value === "number") {
+        this.test = true;
         return this;
-      } else {
-        return false;
       }
+      this.test = false;
+      return this;
     },
     isArray() {
-      if (result) {
-        if (Array.isArray(this.valueToCheck)) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (Array.isArray(this.test_value)) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     isFloat() {
-      if (result) {
-        if (
-          validator(this.valueToCheck).isNumber() &&
-          this.valueToCheck.toString().indexOf(".") != -1
-        ) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (
+        test &&
+        validator(this.test_value).isNumber() &&
+        this.test_value.toString().indexOf(".") != -1
+      ) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     min(element) {
-      if (result) {
-        if (this.valueToCheck >= element) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (test && this.test_value >= element) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     max(element) {
-      if (result) {
-        if (this.test_value <= element) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (test && this.test_value <= element) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     minLenght(valueArray) {
-      if (result) {
-        if (this.valueToCheck.length > valueArray) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (test && this.test_value.length > valueArray) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     maxLenght(valueArray) {
-      if (result) {
-        if (this.valueToCheck.length <= valueArray) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (test && this.test_value.length <= valueArray) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     equal(checkValue) {
-      if (result) {
-        if (checkValue.toString() == this.valueToCheck.toString()) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (test && checkValue.toString() === this.test_value.toString()) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     isDate() {
-      if (result) {
-        if (this.valueToCheck.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/) != null) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (test && this.test_value.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/) != null) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
     },
     isEmail() {
-      if (result) {
-        if (this.valueToCheck.match(/^[\w-.]+@[\w-]+.[a-z]{2,4}$/i) != null) {
-          this.result = true;
-          return this;
-        }
-        this.result = false;
-        return this;
-      } else {
+      if (
+        test &&
+        this.test_value.match(/^[\w-.]+@[\w-]+.[a-z]{2,4}$/i) != null
+      ) {
+        this.test = true;
         return this;
       }
+      this.test = false;
+      return this;
+    },
+    validate() {
+      return this.test;
     },
   });
 }
@@ -233,19 +190,19 @@ console.log(authUserData);
 //проверки валидатора
 
 console.log("\nisArray isString isNumber \n");
-console.log(validator("1").isArray().result); // false
-console.log(validator("1").isString().result); // true
-console.log(validator("1").isNumber().result); // false
+console.log(validator("1").isArray().validate()); // false
+console.log(validator("1").isString().validate()); // true
+console.log(validator("1").isNumber().validate()); // false
 
 console.log("\nMin Max \n");
-console.log(validator(10).isNumber().min(10).result); // true
-console.log(validator(10).isNumber().min(4).max(9).result); // false
+console.log(validator(10).isNumber().min(10).validate()); // true
+console.log(validator(10).isNumber().min(4).max(9).validate()); // false
 
 console.log("\nisArray equal \n");
-console.log(validator([]).isArray().equal([1, 2, 3]).result); // false
-console.log(validator([1, 2, 3]).isArray().equal([1, 2, 3]).result); // true
+console.log(validator([]).isArray().equal([1, 2, 3]).validate()); // false
+console.log(validator([1, 2, 3]).isArray().equal([1, 2, 3]).validate()); // true
 
 console.log("\nisString isEmail isDate \n");
-console.log(validator("user@m").isString().isEmail().result); // false
-console.log(validator("user@mail.ru").isString().isEmail().result); // true
-console.log(validator("25.12.1993").isDate().result); // true
+console.log(validator("user@m").isString().isEmail().validate()); // false
+console.log(validator("user@mail.ru").isString().isEmail().validate()); // true
+console.log(validator("25.12.1993").isDate().validate()); // true
