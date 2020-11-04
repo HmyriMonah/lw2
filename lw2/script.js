@@ -1,6 +1,6 @@
-var authUserData = null;
-var userDatabase = []; // массив с зарегистрированными пользователями
-var emailForVerification = null;
+let authUserData = null;
+let userDatabase = []; // массив с зарегистрированными пользователями
+
 //функция регистрации
 function register(email, password) {
   let key = null;
@@ -19,7 +19,6 @@ function register(email, password) {
 function signIn(email, password) {
   if (check(email, password)) {
     let number = null;
-    emailForVerification = email;
     number = userDatabase.findIndex(
       (user) => user.email === email && user.password === password
     );
@@ -48,7 +47,6 @@ function signOut() {
 }
 // функция восстановления пароля
 function resetPassword(email, oldPassword, newPassword) {
-  emailForVerification = email;
   number = userDatabase.findIndex(
     (user) => user.email === email && user.password === oldPassword
   );
