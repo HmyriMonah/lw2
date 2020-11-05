@@ -4,7 +4,7 @@ var emailForVerification = null;
 //функция регистрации
 function register(email, password) {
   let key = null;
-  if (check(email, password)) {
+  if (validateEmailAndPassword(email, password)) {
     key = userDatabase.findIndex(
       (user) => user.email === email && user.password === password
     );
@@ -17,7 +17,7 @@ function register(email, password) {
 }
 //функция входа
 function signIn(email, password) {
-  if (check(email, password)) {
+  if (validateEmailAndPassword(email, password)) {
     let number = null;
     emailForVerification = email;
     number = userDatabase.findIndex(
@@ -31,7 +31,7 @@ function signIn(email, password) {
   return false;
 }
 //проверка почты и пароля
-function check(email, password) {
+function validateEmailAndPassword(email, password) {
   if (
     email.match(/^[\w-.]+@[\w-]+.[a-z]{2,4}$/i) !== null &&
     password.length === 6 &&
@@ -146,8 +146,11 @@ function validator(value) {
       this.test = false;
       return this;
     },
-    equal(checkValue) {
-      if (test && checkValue.toString() === this.test_value.toString()) {
+    equal(validateEmailAndPasswordValue) {
+      if (
+        test &&
+        validateEmailAndPasswordValue.toString() === this.test_value.toString()
+      ) {
         this.test = true;
         return this;
       }
